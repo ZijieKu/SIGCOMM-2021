@@ -1,0 +1,46 @@
+{
+  "APP": {
+    "ENVIRONMENT": "TEST",
+    "DEBUG": false
+  },
+  "CHROME": {
+    "DRIVER": "92.0.4515.107",
+    "PATH": "./crawler/chrome_driver/ChromeDriver_92.0.4515.107/chromedriver"
+  },
+  "URL": {
+    "2001": {
+      "BASE_URL": "https://dl.acm.org",
+      "PATH": "/doi/proceedings/10.1145/383059",
+      "PARAMS": {
+      }
+    },
+    "2002": {
+      "BASE_URL": "https://dl.acm.org",
+      "PATH": "/doi/proceedings/10.1145/633025",
+      "PARAMS": {
+      }
+    },
+    "2021": {
+      "BASE_URL": "https://dl.acm.org",
+      "PATH": "/doi/proceedings/10.1145/3452296",
+      "PARAMS": {
+        "tocHeading": [
+          "heading1",
+          "heading2",
+          "heading3",
+          "heading4",
+          "heading5",
+          "heading6",
+          "heading7",
+          "heading8",
+          "heading9",
+          "heading10",
+          "heading11",
+          "heading12",
+          "heading13",
+          "heading14"
+        ]
+      }
+    }
+  }
+}
