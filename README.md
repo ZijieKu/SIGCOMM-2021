@@ -2,6 +2,8 @@
 
 ---
 
+* This scrapper was created to know more about ex-SIGCOMM authors, whose papers were accepted in the past and the current event.
+
 ## Chrome Driver
 * https://chromedriver.chromium.org/downloads
 
