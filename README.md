@@ -1,6 +1,8 @@
-# SIGCOMM-2021
+# [SIGCOMM-2021](https://conferences.sigcomm.org/sigcomm/2021/)
 
 ---
+
+* This scraper was created to know more about ex-SIGCOMM authors, whose papers were accepted in the past and the current event.
 
 ## Chrome Driver
 * https://chromedriver.chromium.org/downloads
