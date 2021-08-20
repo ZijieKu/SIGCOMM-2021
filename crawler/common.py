@@ -88,10 +88,10 @@ def fetch_all_articles_urls(soup: BeautifulSoup) -> list:
     return article_urls
 
 
-def fetch_article_author_info(driver: webdriver, url: dict) -> set:
+def fetch_article_author_info(driver: webdriver, url: dict) -> dict:
     print(f'scrapping article author info...')
     article_authors = dict()  # use {article, authors} pair for verification purpose
-    distinct_author_list = set()
+    distinct_author_list = dict()
     year = url['year']
     article_full_urls = list()
     try:
@@ -105,15 +105,29 @@ def fetch_article_author_info(driver: webdriver, url: dict) -> set:
             print(f'\t{len(author_list)} author(s) discovered for article {article_link}')
             for author in author_list:
                 author_inst = author.find('span', {'class': 'loa_author_inst'})
+                author_name = author.find('span', {'class': 'loa__author-name'})
                 try:
+                    name = None
+                    id = None
+                    if author_name and author_name.find('span'):
+                        name = author_name.find('span').contents[1]
                     if author_inst and author_inst.find('p') and author_inst.find('p')['data-doi']:
-                        author = author_inst.find('p').attrs['data-doi'].split('-')[1]
-                        article_authors[article_link].append(author)
-                        distinct_author_list.add(author)
+                        id = author_inst.find('p').attrs['data-doi'].split('-')[1]
+                        article_authors[article_link].append(id)
+                    if name is None or id is None:
+                        raise Exception(f'wrong author name: {name} or id: {id}')
+                    else:
+                        if name in distinct_author_list:
+                            distinct_author_list[name].append(id)
+                        else:
+                            distinct_author_list[name] = [id]
+                    print(f'discovered author: {id} - {name}')
                 except Exception as e:
-                    print(f'[WARNING] please manually investigate {article_full_url} for {author_inst}')
+                    print(
+                        f'[WARNING] please manually investigate {article_full_url} for {author_name} with {author_inst}')
                     continue
-        print(f'discovered a total of {len(article_full_urls)} articles and {len(distinct_author_list)} distinct authors')
+        print(
+            f'discovered a total of {len(article_full_urls)} articles and {len(distinct_author_list)} distinct authors')
     except Exception as e:
         raise Exception(f'error happened when scrapping author info: {e}')
     return distinct_author_list

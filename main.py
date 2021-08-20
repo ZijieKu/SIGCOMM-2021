@@ -60,9 +60,9 @@ def get_author_info() -> dict:
     driver.quit()
 
     author_info = {
-        '2001': list(urls['2001']['author_set']),
-        '2002': list(urls['2002']['author_set']),
-        '2021': list(urls['2021']['author_set'])
+        '2001': urls['2001']['author_set'],
+        '2002': urls['2002']['author_set'],
+        '2021': urls['2021']['author_set']
     }
     print(f'dumping author_info to json output: {author_info}')
     with open('./results/author_info.json', 'w') as f:
@@ -131,26 +131,39 @@ def affiliation_handle(year, inst, university, others):
 def main(args):
     if args.author:
         author_info = get_author_info()
-        print(f'author_info: {author_info}')
-        intersect_2001_2021 = set(author_info['2001']).intersection(set(author_info['2021']))
-        intersect_2002_2021 = set(author_info['2002']).intersection(set(author_info['2021']))
-        intersect_0102_2021 = set(author_info['2001']).union(author_info['2002']).intersection(set(author_info['2021']))
-        all_three_events = set(author_info['2001']).intersection(author_info['2002']).intersection(
-            set(author_info['2021']))
-        print(
-            f'there are {len(intersect_2001_2021)} authors whose paper was accepted in both SIGCOMM 2001 and 2021 events')
-        print(f'\tthey are {intersect_2001_2021}')
-        print(
-            f'there are {len(intersect_2002_2021)} authors whose paper was accepted in both SIGCOMM 2002 and 2021 events')
-        print(f'\tthey are {intersect_2002_2021}')
-        print(f'there are {len(intersect_0102_2021)} authors whose paper was accepted in both SIGCOMM (2001/2002) and '
-              f'2021 events')
-        print(f'\tthey are {intersect_0102_2021}')
-        print(
-            f'there are {len(all_three_events)} authors whose paper was accepted in 2001, 2002 and 2021 events')
-        print(f'\tthey are {all_three_events}')
 
-        print(f'Personal profile can be found here -> https://dl.acm.org/profile/[id]')
+        multi_profile_author = dict()
+        for author_name in (author_info['2001'].keys() | author_info['2002'].keys() | author_info['2021'].keys()):
+            ids = set()
+            try:
+                if author_name in author_info['2001']:
+                    for id in author_info['2001'][author_name]:
+                        ids.add(id)
+                if author_name in author_info['2002']:
+                    for id in author_info['2002'][author_name]:
+                        ids.add(id)
+                if author_name in author_info['2021']:
+                    for id in author_info['2021'][author_name]:
+                        ids.add(id)
+            except Exception as e:
+                print(f'cannot process {author_name}')
+                continue
+            if len(ids) > 1:
+                multi_profile_author[author_name] = ids
+
+        print(f'multiple profile authors:')
+        for author in multi_profile_author:
+            print(f'author with multiple profile: {author} : {multi_profile_author[author]}')
+
+        # print(f'author_info: {author_info}')
+        print(f'2001 & 2002 attendees: {len(author_info["2001"].keys() & author_info["2002"].keys())}')
+        print(f'2001 & 2021 attendees: {len(author_info["2001"].keys() & author_info["2021"].keys())}')
+        print(f'(2001 | 2002) & 2021 attendees: '
+              f'{len((author_info["2001"].keys() | author_info["2002"].keys()) & author_info["2021"].keys())}')
+        print(f'2001 & 2002 & 2021 attendees: '
+              f'{len(author_info["2001"].keys() & author_info["2002"].keys() & author_info["2021"].keys())}')
+        # print(f'Personal profile can be found here -> https://dl.acm.org/profile/[id]')
+
     elif args.affiliation:
         author_info = get_author_info()
         get_affiliation_info(author_info)
