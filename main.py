@@ -119,6 +119,47 @@ def get_affiliation_info(author_info):
    driver.quit()
 
 
+# given all_urls[year][article_links], go thru each article's list of institutions
+# 1. determine if it's an academia-only paper or has industry involved
+# 2. output the list of universities to the results folder
+def academia(all_urls: list):
+   universities = []
+
+   keywords = [
+      'university', 'college', 'institute of technology', 'uc', 'epfl', 'mit', 'usc', 'virginia tech', 'icsi',
+      'cornell', 'eth', 'kaust', 'tu delft', 'uiuc'
+   ]
+
+   for year in all_urls.keys:
+      # count total number of academia papers in that year
+      num_academia = 0
+      for article_link in all_urls[year]:
+         all_academia = True
+         # loop thru the list
+         for inst in all_urls[year][article_link]:
+            # check if it's an inst
+            inst_lower = inst.lower()
+            isInst = False
+            for key in keywords:
+               if key in inst_lower:
+                  universities.append(inst)
+                  isInst = True
+
+            if not isInst:
+               all_academia = False  # if didn't find a key
+
+         # check if this paper is all academia
+         if all_academia:
+            num_academia += 1
+
+      # print the industry vs. academia count in this year
+      print(f'The total number of papers in {year} is {len(all_urls[year])}')
+      print(f'Academia paper in {year}: {num_academia}')
+      print(f'Industry involved papers in {year}: {len(all_urls[year]) - num_academia}')
+
+   print(f'dumping universities info')
+   with open('./results/universities.json', 'w') as f:
+      json.dump(universities, f)
 
 
 def affiliation_handle(year, inst, university, others):
