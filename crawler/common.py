@@ -1,5 +1,6 @@
 import json
 from urllib.parse import urljoin, urlencode
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -131,6 +132,44 @@ def fetch_article_author_info(driver: webdriver, url: dict) -> dict:
     except Exception as e:
         raise Exception(f'error happened when scrapping author info: {e}')
     return distinct_author_list
+
+
+def fetch_affiliation_info(driver: webdriver, url: dict) -> dict:
+    print(f'scrapping article affiliation info...')
+    article_authors = dict()  # use {article, authors} pair for verification purpose
+    distinct_author_list = dict()
+    article_insts = dict()
+
+    year = url['year']
+    article_full_urls = list()
+    try:
+        for article_link in url['article_links']:
+            article_full_url = urljoin(config['URL'][year]['BASE_URL'], article_link)
+            article_full_urls.append(article_full_url)
+            author_list = fetch_html_content(driver, article_full_url) \
+                .find('ul', {'ariaa-label': 'authors'}) \
+                .find_all('li', {'class': 'loa__item'})
+            article_authors[article_link] = []
+            print(f'\t{len(author_list)} author(s) discovered for article {article_link}')
+            inst_set = set()
+            for author in author_list:
+                author_inst = author.find('span', {'class': 'loa_author_inst'})
+                author_name = author.find('span', {'class': 'loa__author-name'})
+                try:
+                    if author_inst and author_inst.find('p'):
+                        inst = author_inst.find('p').contents[0]
+                        inst_set.add(inst)
+                        print(f'discovered institution for {article_full_url} is {inst}')
+                except Exception as e:
+                    print(
+                        f'[WARNING] please manually investigate {article_full_url} for {author_name} with {author_inst}')
+                    continue
+        article_insts[article_link] = inst_set
+        print(
+            f'discovered a total of {len(article_full_urls)} articles and {len(distinct_author_list)} distinct authors')
+    except Exception as e:
+        raise Exception(f'error happened when scrapping author info: {e}')
+    return article_insts
 
 
 def get_config() -> dict:
