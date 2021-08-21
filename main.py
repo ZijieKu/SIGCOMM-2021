@@ -123,7 +123,7 @@ def get_affiliation_info(author_info):
 # 1. determine if it's an academia-only paper or has industry involved
 # 2. output the list of universities to the results folder
 def academia(all_urls: list):
-   universities = []
+   universities = set()
 
    keywords = [
       'university', 'college', 'institute of technology', 'uc', 'epfl', 'mit', 'usc', 'virginia tech', 'icsi',
