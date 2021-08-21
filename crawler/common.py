@@ -164,7 +164,7 @@ def fetch_affiliation_info(driver: webdriver, url: dict) -> dict:
                     print(
                         f'[WARNING] please manually investigate {article_full_url} for {author_name} with {author_inst}')
                     continue
-        article_insts[article_link] = inst_set
+            article_insts[article_link] = list(inst_set)
         print(
             f'discovered a total of {len(article_full_urls)} articles and {len(distinct_author_list)} distinct authors')
     except Exception as e:

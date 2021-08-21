@@ -5,7 +5,7 @@ from pathlib import Path
 
 from crawler.common import (
     get_url, get_browser, fetch_html_content, fetch_all_articles_urls,
-    fetch_article_author_info, get_2021_urls
+    fetch_article_author_info, get_2021_urls, fetch_affiliation_info
 )
 
 
@@ -70,7 +70,55 @@ def get_author_info() -> dict:
     return author_info
 
 
-def get_affiliation_info(author_info):
+def get_affiliation_info() -> dict:
+    fname = './results/affiliation_info.json'
+    if Path(fname).exists():
+        with open(fname, 'r') as f:
+            affiliations = json.load(f)
+        return affiliations
+
+    driver = get_browser()
+    # , "2021" # requires special parsing because all tabs are not loaded by default
+    years = [
+        "2002",
+        "2021"
+    ]
+    urls = dict()
+    affiliations = dict()
+    for year in years:
+        urls[year] = {'year': year, 'url': get_url(year) if year != '2021' else get_2021_urls()}
+    try:
+        for year in urls:
+            print(f'processing SIGCOMM {year} event...')
+            el = urls[year]
+            print(f'ACM digital library url: {el["url"]}')
+
+            if year == '2021':
+                el['content'] = []
+                urls[year]['article_links'] = []
+                urls[year]['author_set'] = []
+                for subTab in el['url']:
+                    content = fetch_html_content(driver, subTab)
+                    el['content'].append(content)
+                    urls[year]['article_links'].append(fetch_all_articles_urls(content))
+                urls[year]['article_links'] = list(chain(*urls[year]['article_links']))
+            else:
+                el['content'] = fetch_html_content(driver, el['url'])
+                urls[year]['article_links'] = fetch_all_articles_urls(el['content'])
+            affiliations[year] = fetch_affiliation_info(driver, urls[year])
+            print(f'{affiliations[year]}')
+    except Exception as e:
+        print(f'Exception {e}')
+    # remember to quit driver
+    driver.quit()
+
+    print(f'dumping affiliation_info to json output: {affiliations}')
+    with open('./results/affiliation_info.json', 'w') as f:
+        json.dump(affiliations, f)
+    return affiliations
+
+
+def get_affiliation(author_info):
     driver = get_browser()
     university_2002 = {}
     university_2021 = {}
@@ -165,8 +213,9 @@ def main(args):
         # print(f'Personal profile can be found here -> https://dl.acm.org/profile/[id]')
 
     elif args.affiliation:
-        author_info = get_author_info()
-        get_affiliation_info(author_info)
+        # author_info = get_author_info()
+        affiliation_info = get_affiliation_info()
+        get_affiliation_info(affiliation_info)
 
 
 if __name__ == '__main__':
