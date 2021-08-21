@@ -170,44 +170,41 @@ def get_affiliation(author_info):
 # given all_urls[year][article_links], go thru each article's list of institutions
 # 1. determine if it's an academia-only paper or has industry involved
 # 2. output the list of universities to the results folder
-def academia(all_urls: list):
-   universities = set()
+def academia(all_urls: dict):
+    keywords = {'university', 'college', 'institute of technology', 'uc berkeley', 'uc san diego', 'ucla', 'epfl',
+                'mit', 'usc', 'virginia tech', 'icsi',
+                'cornell', 'eth', 'kaust', 'tu delft', 'uiuc'}
+    affiliation_academia_info = dict()
 
-   keywords = [
-      'university', 'college', 'institute of technology', 'uc', 'epfl', 'mit', 'usc', 'virginia tech', 'icsi',
-      'cornell', 'eth', 'kaust', 'tu delft', 'uiuc'
-   ]
+    for year in all_urls:
+        affiliation_academia_info[year] = {}
+        num_academia = 0
+        num_industry = 0
+        universities = set()
+        for article_link in all_urls[year]:
+            all_academia = True
+            affiliation_academia_info[year][article_link] = {}
+            for inst in all_urls[year][article_link]:
+                inst_lower = inst.lower()
+                if 1 in [c in inst_lower for c in keywords]:
+                    universities.add(inst)
+                else:
+                    all_academia = False
+            if not all_academia:
+                num_industry += 1
+            else:
+                num_academia += 1
+            affiliation_academia_info[year][article_link]['all_academia'] = all_academia
+        affiliation_academia_info[year]['num_academia'] = num_academia
+        affiliation_academia_info[year]['num_industry'] = num_industry
+        affiliation_academia_info[year]['unique_university'] = list(universities)
+        print(f'Number of academia only affiliation in year {year} is {num_academia}')
+        print(f'Number of non-academia only affiliation in year {year} is {num_industry}')
+        print(f'unique university in {year} is {universities}')
 
-   for year in all_urls.keys:
-      # count total number of academia papers in that year
-      num_academia = 0
-      for article_link in all_urls[year]:
-         all_academia = True
-         # loop thru the list
-         for inst in all_urls[year][article_link]:
-            # check if it's an inst
-            inst_lower = inst.lower()
-            isInst = False
-            for key in keywords:
-               if key in inst_lower:
-                  universities.append(inst)
-                  isInst = True
-
-            if not isInst:
-               all_academia = False  # if didn't find a key
-
-         # check if this paper is all academia
-         if all_academia:
-            num_academia += 1
-
-      # print the industry vs. academia count in this year
-      print(f'The total number of papers in {year} is {len(all_urls[year])}')
-      print(f'Academia paper in {year}: {num_academia}')
-      print(f'Industry involved papers in {year}: {len(all_urls[year]) - num_academia}')
-
-   print(f'dumping universities info')
-   with open('./results/universities.json', 'w') as f:
-      json.dump(universities, f)
+    print(f'dumping university infomation')
+    with open('./results/university_info.json', 'w') as f:
+        json.dump(affiliation_academia_info, f)
 
 
 def affiliation_handle(year, inst, university, others):
@@ -256,9 +253,8 @@ def main(args):
         # print(f'Personal profile can be found here -> https://dl.acm.org/profile/[id]')
 
     elif args.affiliation:
-        # author_info = get_author_info()
         affiliation_info = get_affiliation_info()
-        get_affiliation_info(affiliation_info)
+        academia(affiliation_info)
 
 
 if __name__ == '__main__':
